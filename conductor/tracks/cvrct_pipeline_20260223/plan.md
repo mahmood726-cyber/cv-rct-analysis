@@ -18,7 +18,7 @@
     - [ ] Implement extraction and storage routine.
 - [x] Task: Conductor - User Manual Verification 'Phase 2: AACT Registry Extraction' (5456c17)
 
-## Phase 3: PubMed & OpenAlex Cross-Referencing
+## Phase 3: PubMed & OpenAlex Cross-Referencing [checkpoint: 3d9f68d]
 - [x] Task: Implement asynchronous PubMed API client for publication searching. (ef6afe0)
     - [ ] Write tests for Entrez API interaction.
     - [ ] Implement httpx-based PubMed client.
@@ -28,7 +28,7 @@
 - [x] Task: Develop cross-referencing logic to link NCT IDs to PMIDs/OpenAlex IDs with tests. (fa582f7)
     - [ ] Write tests for linkage validation logic.
     - [ ] Implement reconciliation module.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: PubMed & OpenAlex Cross-Referencing' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: PubMed & OpenAlex Cross-Referencing' (3d9f68d)
 
 ## Phase 4: Pipeline Orchestration & Validation
 - [ ] Task: Build the master pipeline orchestration script.
