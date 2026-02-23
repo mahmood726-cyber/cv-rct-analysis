@@ -22,7 +22,7 @@
 - [x] Task: Implement asynchronous PubMed API client for publication searching. (ef6afe0)
     - [ ] Write tests for Entrez API interaction.
     - [ ] Implement httpx-based PubMed client.
-- [ ] Task: Implement asynchronous OpenAlex API client for publication metadata.
+- [x] Task: Implement asynchronous OpenAlex API client for publication metadata. (2524fc7)
     - [ ] Write tests for OpenAlex metadata parsing.
     - [ ] Implement OpenAlex client.
 - [ ] Task: Develop cross-referencing logic to link NCT IDs to PMIDs/OpenAlex IDs with tests.
