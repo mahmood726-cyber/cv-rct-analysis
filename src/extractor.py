@@ -24,16 +24,16 @@ class CVRExtractor:
         """
         Connects to AACT, runs the query, and stores results in local DB.
         """
-        query_sql = self.aact_connector.generate_cv_query(start_year, end_year)
-        
+        query_sql, params = self.aact_connector.generate_cv_query(start_year, end_year)
+
         self.logger.info(f"Connecting to AACT to extract trials for {start_year}-{end_year}...")
-        
+
         # Note: We use a separate engine for AACT as it's external
         aact_engine = create_engine(self.aact_connector.db_url)
-        
+
         try:
             with aact_engine.connect() as conn:
-                result = conn.execute(text(query_sql))
+                result = conn.execute(text(query_sql), params)
                 rows = result.mappings().all()
                 
                 self.logger.info(f"Found {len(rows)} trials in AACT. Processing...")

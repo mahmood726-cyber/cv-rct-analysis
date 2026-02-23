@@ -53,7 +53,7 @@ class CVStatsCalculator:
                     [p.publication_date for p in trial.publications if p.publication_date],
                     default=None
                 )
-                if earliest_pub:
+                if earliest_pub is not None:
                     delay = self.calculate_days_to_pub(trial.completion_date, earliest_pub)
                     if delay is not None:
                         delays.append(delay)

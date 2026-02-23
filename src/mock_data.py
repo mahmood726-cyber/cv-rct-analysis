@@ -15,9 +15,12 @@ def populate_mock_data():
     db_handler = DBHandler(engine)
     
     # Sample Trials
+    # NOTE: These NCT IDs are obviously fake (NCT99XXX prefix) to prevent
+    # confusion with real ClinicalTrials.gov entries. Never use real NCT IDs
+    # with fabricated data.
     mock_trials = [
         {
-            "nct_id": "NCT01234567",
+            "nct_id": "NCT99000001",
             "title": "Effect of New drug on Chronic Heart Failure",
             "phase": "Phase 3",
             "conditions": "Heart Failure",
@@ -26,7 +29,7 @@ def populate_mock_data():
             "enrollment": 1200
         },
         {
-            "nct_id": "NCT08765432",
+            "nct_id": "NCT99000002",
             "title": "Ablation for Atrial Fibrillation (The AFIB Trial)",
             "phase": "Phase 3",
             "conditions": "Atrial Fibrillation",
@@ -35,7 +38,7 @@ def populate_mock_data():
             "enrollment": 850
         },
         {
-            "nct_id": "NCT05555555",
+            "nct_id": "NCT99000003",
             "title": "Statin therapy in Coronary Artery Disease",
             "phase": "Phase 3",
             "conditions": "CAD, Myocardial Infarction",
@@ -44,7 +47,7 @@ def populate_mock_data():
             "enrollment": 4500
         },
         {
-            "nct_id": "NCT01111111",
+            "nct_id": "NCT99000004",
             "title": "Novel Anticoagulant for Stroke Prevention",
             "phase": "Phase 3",
             "conditions": "Stroke, Hypertension",
@@ -53,7 +56,7 @@ def populate_mock_data():
             "enrollment": 3200
         },
         {
-            "nct_id": "NCT02222222",
+            "nct_id": "NCT99000005",
             "title": "TAVI vs Surgery in Low-Risk Patients",
             "phase": "Phase 3",
             "conditions": "Aortic Stenosis",
@@ -70,21 +73,21 @@ def populate_mock_data():
             "title": "Primary Results of the Heart Failure Study",
             "journal": "NEJM",
             "publication_date": date(2019, 1, 20),
-            "nct_match": "NCT01234567"
+            "nct_match": "NCT99000001"
         },
         {
             "pmid": "31876543",
             "title": "Ablation vs Drugs for AFIB Outcomes",
             "journal": "Lancet",
             "publication_date": date(2019, 12, 1),
-            "nct_match": "NCT08765432"
+            "nct_match": "NCT99000002"
         },
         {
             "pmid": "33555555",
             "title": "Intensive Statin Therapy in CAD",
             "journal": "JAMA",
             "publication_date": date(2021, 5, 15),
-            "nct_match": "NCT05555555"
+            "nct_match": "NCT99000003"
         }
     ]
     

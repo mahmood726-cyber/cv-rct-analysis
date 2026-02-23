@@ -16,7 +16,7 @@ class DomainMapper:
             r"cardiac failure", r"ventricular dysfunction",
         ],
         "Coronary Artery Disease": [
-            r"coronary", r"ischemia", r"ischemic heart", r"angina",
+            r"coronary", r"ischemic heart", r"myocardial ischemia", r"angina",
             r"myocardial infarction", r"\bstemi\b", r"\bnstemi\b",
             r"acute coronary syndrome", r"\bcad\b",
             r"percutaneous coronary", r"\bpci\b", r"\bcabg\b",

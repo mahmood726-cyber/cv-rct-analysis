@@ -107,6 +107,15 @@ def test_ablation_not_false_positive(mapper):
     assert mapper.map_domain(conditions="catheter ablation for atrial fibrillation") == "Arrhythmia"
 
 
+def test_ischemia_specificity(mapper):
+    """Bare 'ischemia' should not trigger CAD (too broad — matches limb/renal)."""
+    assert mapper.map_domain(conditions="limb ischemia") == "Other"
+    assert mapper.map_domain(conditions="renal ischemia") == "Other"
+    # But specific cardiac ischemia matches
+    assert mapper.map_domain(conditions="ischemic heart disease") == "Coronary Artery Disease"
+    assert mapper.map_domain(conditions="myocardial ischemia") == "Coronary Artery Disease"
+
+
 def test_pacing_not_false_positive(mapper):
     """Generic 'pacing' should not trigger Arrhythmia."""
     assert mapper.map_domain(conditions="self-pacing exercise intervention") == "Other"

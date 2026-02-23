@@ -31,8 +31,8 @@ def test_transform_aact_row(mock_db_handler, mock_aact_connector):
     assert transformed['status'] == 'Completed'
 
 def test_extract_and_store(mock_db_handler, mock_aact_connector):
-    # Setup mocks
-    mock_aact_connector.generate_cv_query.return_value = "SELECT ..."
+    # Setup mocks — generate_cv_query now returns (sql, params)
+    mock_aact_connector.generate_cv_query.return_value = ("SELECT ...", {})
     
     # Mocking the engine and connection
     mock_engine = MagicMock()

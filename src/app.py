@@ -86,6 +86,21 @@ def main():
         options=["All", "Published Only", "Unpublished Only"]
     )
     
+    # Filter Logic
+    filtered_trials = trials
+    
+    if selected_domains:
+        filtered_trials = [
+            t for t in filtered_trials 
+            if any(domain in selected_domains for domain in t.mapped_domains)
+        ]
+        
+    if pub_filter == "Published Only":
+        filtered_trials = [t for t in filtered_trials if len(t.publications) > 0]
+    elif pub_filter == "Unpublished Only":
+        filtered_trials = [t for t in filtered_trials if len(t.publications) == 0]
+
+    # Export Section (must be after filtering)
     st.sidebar.divider()
     st.sidebar.subheader("Export")
     
@@ -109,20 +124,6 @@ def main():
             file_name='cv_rct_export.csv',
             mime='text/csv',
         )
-    
-    # Filter Logic
-    filtered_trials = trials
-    
-    if selected_domains:
-        filtered_trials = [
-            t for t in filtered_trials 
-            if any(domain in selected_domains for domain in t.mapped_domains)
-        ]
-        
-    if pub_filter == "Published Only":
-        filtered_trials = [t for t in filtered_trials if len(t.publications) > 0]
-    elif pub_filter == "Unpublished Only":
-        filtered_trials = [t for t in filtered_trials if len(t.publications) == 0]
 
     # Summary Statistics for filtered data
     calc = CVStatsCalculator()
@@ -142,11 +143,9 @@ def main():
     from src.viz import VizGenerator
     viz = VizGenerator()
     
-    # Mock some visualization data for the demo
-    # In a real scenario, this would come from extracted primary outcome results
+    # Visual data
     viz_data = []
     for i, t in enumerate(filtered_trials):
-        # Generate some deterministic mock effect sizes based on NCT ID
         import random
         random.seed(t.nct_id)
         es = random.uniform(-0.5, 0.2)

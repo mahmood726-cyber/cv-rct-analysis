@@ -3,18 +3,21 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from src.models import Base
 
-# Database connection URL - defaulting to a local PostgreSQL instance
-# In a real scenario, this would be loaded from environment variables
+# Database connection URL — set DATABASE_URL env var for production.
+# Default targets a local PostgreSQL instance with common dev credentials.
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/cv_rct_db")
+
 
 def get_engine(url=DATABASE_URL):
     return create_engine(url)
 
+
 def init_db(engine):
     Base.metadata.create_all(engine)
 
+
 def get_session(engine):
-    Session = sessionmaker(bind=engine)
+    Session = sessionmaker(bind=engine, expire_on_commit=False)
     return Session()
 
 if __name__ == "__main__":

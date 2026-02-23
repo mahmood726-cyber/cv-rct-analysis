@@ -21,7 +21,7 @@ class DataValidator:
         """
         if not pmid:
             return False
-        return bool(re.match(r'^\d+$', pmid))
+        return bool(re.match(r'^\d{1,8}$', pmid))
 
     def check_integrity(self):
         """
