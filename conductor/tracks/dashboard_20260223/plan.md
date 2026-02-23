@@ -4,7 +4,7 @@
 - [x] Task: Implement trial categorization and domain mapping logic. (395149c)
     - [ ] Write unit tests for categorization rules.
     - [ ] Implement domain mapper module.
-- [ ] Task: Develop statistical aggregation functions (Time-to-Pub, Publication Rates).
+- [x] Task: Develop statistical aggregation functions (Time-to-Pub, Publication Rates). (1577d95)
     - [ ] Write tests for aggregation calculations.
     - [ ] Implement stats module.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Analysis & Aggregation Engine' (Protocol in workflow.md)
