@@ -4,7 +4,7 @@
 - [x] Task: Set up PostgreSQL database and schema for trial metadata. (8a7327c)
     - [ ] Define SQLAlchemy models for trials and publications.
     - [ ] Create database migration/initialization script.
-- [ ] Task: Implement database connection and basic CRUD operations with tests.
+- [x] Task: Implement database connection and basic CRUD operations with tests. (ef91049)
     - [ ] Write unit tests for trial record insertion.
     - [ ] Implement database handler module.
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Environment Setup & Data Storage' (Protocol in workflow.md)
