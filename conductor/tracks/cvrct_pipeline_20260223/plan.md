@@ -30,11 +30,11 @@
     - [ ] Implement reconciliation module.
 - [x] Task: Conductor - User Manual Verification 'Phase 3: PubMed & OpenAlex Cross-Referencing' (3d9f68d)
 
-## Phase 4: Pipeline Orchestration & Validation
+## Phase 4: Pipeline Orchestration & Validation [checkpoint: f8ddf46]
 - [x] Task: Build the master pipeline orchestration script. (54d8ba6)
     - [ ] Implement CLI interface for running the full extraction.
     - [ ] Add logging and progress tracking.
 - [x] Task: Implement automated data validation checks for extraction integrity. (a6d94cc)
     - [ ] Write tests for validation rules.
     - [ ] Implement integrity reporting.
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Pipeline Orchestration & Validation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Pipeline Orchestration & Validation' (f8ddf46)
