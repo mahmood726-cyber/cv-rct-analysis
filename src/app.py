@@ -86,6 +86,30 @@ def main():
         options=["All", "Published Only", "Unpublished Only"]
     )
     
+    st.sidebar.divider()
+    st.sidebar.subheader("Export")
+    
+    if filtered_trials:
+        export_data = []
+        for t in filtered_trials:
+            export_data.append({
+                "nct_id": t.nct_id,
+                "title": t.title,
+                "status": t.status,
+                "domains": ", ".join(t.mapped_domains),
+                "completion_date": str(t.completion_date),
+                "publication_count": len(t.publications)
+            })
+        export_df = pd.DataFrame(export_data)
+        csv = export_df.to_csv(index=False).encode('utf-8')
+        
+        st.sidebar.download_button(
+            label="Download Filtered Results (CSV)",
+            data=csv,
+            file_name='cv_rct_export.csv',
+            mime='text/csv',
+        )
+    
     # Filter Logic
     filtered_trials = trials
     
