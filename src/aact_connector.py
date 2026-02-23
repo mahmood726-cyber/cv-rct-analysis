@@ -23,7 +23,7 @@ class AACTConnector:
         Generates a SQL query to find Phase 3 CV RCTs within a date range.
         """
         mesh_terms_str = "', '".join(self.CV_MESH_TERMS)
-        keywords_str = "%' OR browse_condition.mesh_term ILIKE '%".join(self.CV_KEYWORDS)
+        keywords_str = "%' OR browse_conditions.mesh_term ILIKE '%".join(self.CV_KEYWORDS)
         
         query = f"""
         SELECT 
