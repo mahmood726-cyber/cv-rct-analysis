@@ -13,7 +13,7 @@
 - [x] Task: Set up Streamlit environment and base layout. (3c71347)
     - [ ] Create basic dashboard entry point.
     - [ ] Implement database integration for UI.
-- [ ] Task: Build interactive filtering and search components.
+- [x] Task: Build interactive filtering and search components. (1bef4f6)
     - [ ] Implement disease area and date filters.
     - [ ] Create trial detail view logic.
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Core Dashboard Implementation' (Protocol in workflow.md)
