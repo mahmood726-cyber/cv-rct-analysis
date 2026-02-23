@@ -19,7 +19,7 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: AACT Registry Extraction' (5456c17)
 
 ## Phase 3: PubMed & OpenAlex Cross-Referencing
-- [ ] Task: Implement asynchronous PubMed API client for publication searching.
+- [x] Task: Implement asynchronous PubMed API client for publication searching. (ef6afe0)
     - [ ] Write tests for Entrez API interaction.
     - [ ] Implement httpx-based PubMed client.
 - [ ] Task: Implement asynchronous OpenAlex API client for publication metadata.
