@@ -25,7 +25,7 @@
 - [x] Task: Implement asynchronous OpenAlex API client for publication metadata. (2524fc7)
     - [ ] Write tests for OpenAlex metadata parsing.
     - [ ] Implement OpenAlex client.
-- [ ] Task: Develop cross-referencing logic to link NCT IDs to PMIDs/OpenAlex IDs with tests.
+- [x] Task: Develop cross-referencing logic to link NCT IDs to PMIDs/OpenAlex IDs with tests. (fa582f7)
     - [ ] Write tests for linkage validation logic.
     - [ ] Implement reconciliation module.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: PubMed & OpenAlex Cross-Referencing' (Protocol in workflow.md)
