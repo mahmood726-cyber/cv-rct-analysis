@@ -18,10 +18,10 @@
     - [x] Create trial detail view logic.
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Core Dashboard Implementation' (4245e24)
 
-## Phase 3: Visualizations & Reporting
+## Phase 3: Visualizations & Reporting [checkpoint: 2a7e1cf]
 - [x] Task: Implement Forest plot and statistical summary visualizations. (e60366f)
     - [ ] Integrate plotly for interactive charts.
     - [ ] Implement bias detection (Funnel plots) view.
 - [x] Task: Add automated reporting and data export features. (f7c1624)
     - [ ] Implement CSV/PDF export from the dashboard.
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Visualizations & Reporting' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Visualizations & Reporting' (2a7e1cf)
