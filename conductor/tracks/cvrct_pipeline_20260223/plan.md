@@ -34,7 +34,7 @@
 - [x] Task: Build the master pipeline orchestration script. (54d8ba6)
     - [ ] Implement CLI interface for running the full extraction.
     - [ ] Add logging and progress tracking.
-- [ ] Task: Implement automated data validation checks for extraction integrity.
+- [x] Task: Implement automated data validation checks for extraction integrity. (a6d94cc)
     - [ ] Write tests for validation rules.
     - [ ] Implement integrity reporting.
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Pipeline Orchestration & Validation' (Protocol in workflow.md)
