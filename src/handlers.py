@@ -1,9 +1,14 @@
+"""Database handler for Trial and Publication CRUD operations."""
 from sqlalchemy.orm import sessionmaker
 from src.models import Trial, Publication
 
+# Fields that must never be overwritten during upsert
+_PROTECTED_FIELDS = frozenset({"id", "publications"})
+
+
 class DBHandler:
     def __init__(self, engine):
-        self.Session = sessionmaker(bind=engine)
+        self.Session = sessionmaker(bind=engine, expire_on_commit=False)
 
     def add_trial(self, trial_data):
         session = self.Session()
@@ -11,8 +16,10 @@ class DBHandler:
             trial = Trial(**trial_data)
             session.add(trial)
             session.commit()
-            session.refresh(trial)
             return trial
+        except Exception:
+            session.rollback()
+            raise
         finally:
             session.close()
 
@@ -29,8 +36,10 @@ class DBHandler:
             pub = Publication(**pub_data)
             session.add(pub)
             session.commit()
-            session.refresh(pub)
             return pub
+        except Exception:
+            session.rollback()
+            raise
         finally:
             session.close()
 
@@ -48,12 +57,15 @@ class DBHandler:
             existing = session.query(Trial).filter_by(nct_id=nct_id).first()
             if existing:
                 for key, value in trial_data.items():
-                    setattr(existing, key, value)
+                    if key not in _PROTECTED_FIELDS:
+                        setattr(existing, key, value)
             else:
                 existing = Trial(**trial_data)
                 session.add(existing)
             session.commit()
-            session.refresh(existing)
             return existing
+        except Exception:
+            session.rollback()
+            raise
         finally:
             session.close()

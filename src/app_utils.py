@@ -1,3 +1,4 @@
+"""Utility functions for the Streamlit dashboard — formatting, filtering, data transformation."""
 import pandas as pd
 
 
@@ -13,7 +14,7 @@ def format_delay(days):
     if days is None:
         return "N/A"
     if days >= 365:
-        return f"{days / 365:.1f} years"
+        return f"{days / 365.25:.1f} years"
     return f"{days} days"
 
 

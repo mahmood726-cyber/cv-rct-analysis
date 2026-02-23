@@ -39,7 +39,7 @@ def _make_trial(nct_id, conditions, title, completion_date, publications=None,
     return trial
 
 
-# --- format_rate (existing) ---
+# --- format_rate ---
 
 def test_format_rate():
     assert format_rate(0.5) == "50.0%"
@@ -125,6 +125,17 @@ def test_filter_by_date_range_none_bounds():
     assert len(result) == 2  # excludes the None-date trial
 
 
+def test_filter_by_date_range_same_day():
+    """Same start and end date includes trials on that exact date."""
+    trials = [
+        _make_trial("NCT001", "HF", "A", date(2020, 6, 15)),
+        _make_trial("NCT002", "HF", "B", date(2020, 6, 16)),
+    ]
+    result = filter_by_date_range(trials, date(2020, 6, 15), date(2020, 6, 15))
+    assert len(result) == 1
+    assert result[0].nct_id == "NCT001"
+
+
 # --- filter_by_search_text ---
 
 def test_filter_by_search_text():
@@ -165,6 +176,15 @@ def test_filter_by_pub_status():
     assert filter_by_pub_status(trials, "Published Only")[0].nct_id == "NCT001"
     assert len(filter_by_pub_status(trials, "Unpublished Only")) == 1
     assert filter_by_pub_status(trials, "Unpublished Only")[0].nct_id == "NCT002"
+
+
+def test_filter_by_pub_status_unknown_returns_all():
+    """Unknown status string returns all trials (safe fallback)."""
+    trials = [
+        _make_trial("NCT001", "HF", "A", date(2020, 1, 1), [_make_pub(date(2021, 1, 1))]),
+        _make_trial("NCT002", "HF", "B", date(2020, 1, 1), []),
+    ]
+    assert len(filter_by_pub_status(trials, "InvalidStatus")) == 2
 
 
 # --- get_trial_detail ---

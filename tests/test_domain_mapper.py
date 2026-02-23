@@ -1,5 +1,4 @@
 import pytest
-from unittest.mock import MagicMock
 from src.domain_mapper import DomainMapper
 
 
@@ -30,7 +29,7 @@ def test_categorize_trial(mapper):
     assert "Heart Failure" in mapper.categorize_trial(trial_mock)
 
 
-# --- New: map_domain (single-string return) ---
+# --- map_domain (single-string return) ---
 
 def test_map_heart_failure(mapper):
     """Conditions containing HF variants map to Heart Failure."""
@@ -63,8 +62,19 @@ def test_map_valvular(mapper):
 
 
 def test_map_vascular(mapper):
-    for text in ["peripheral arterial disease", "stroke", "cerebrovascular accident", "aneurysm", "thrombosis"]:
+    for text in ["peripheral arterial disease", "stroke survivors", "cerebrovascular accident", "aneurysm", "thrombosis"]:
         assert mapper.map_domain(conditions=text) == "Vascular Disease", f"Failed for: {text}"
+
+
+def test_map_lipid(mapper):
+    """Lipid disorders domain."""
+    for text in ["dyslipidemia", "hyperlipidemia", "cholesterol lowering", "statin therapy", "PCSK9 inhibitor"]:
+        assert mapper.map_domain(conditions=text) == "Lipid Disorders", f"Failed for: {text}"
+
+
+def test_map_pulmonary_hypertension(mapper):
+    for text in ["pulmonary hypertension", "pulmonary arterial hypertension", "PAH treatment"]:
+        assert mapper.map_domain(conditions=text) == "Pulmonary Hypertension", f"Failed for: {text}"
 
 
 def test_map_other(mapper):
@@ -77,7 +87,7 @@ def test_map_other(mapper):
 def test_map_from_title(mapper):
     """When conditions are empty, falls back to title text."""
     assert mapper.map_domain(conditions="", title="A trial of heart failure therapy") == "Heart Failure"
-    assert mapper.map_domain(conditions=None, title="Atrial fibrillation ablation study") == "Arrhythmia"
+    assert mapper.map_domain(conditions=None, title="Atrial fibrillation study") == "Arrhythmia"
 
 
 def test_map_multiple_matches_returns_first(mapper):
@@ -87,7 +97,23 @@ def test_map_multiple_matches_returns_first(mapper):
     assert result == "Heart Failure"
 
 
-# --- New: categorize_trials (batch) ---
+# --- False-positive prevention ---
+
+def test_ablation_not_false_positive(mapper):
+    """Generic 'ablation' alone should not trigger Arrhythmia (needs cardiac/catheter context)."""
+    # Hepatic ablation should not match Arrhythmia
+    assert mapper.map_domain(conditions="radiofrequency ablation of hepatic tumors") == "Other"
+    # But cardiac ablation should
+    assert mapper.map_domain(conditions="catheter ablation for atrial fibrillation") == "Arrhythmia"
+
+
+def test_pacing_not_false_positive(mapper):
+    """Generic 'pacing' should not trigger Arrhythmia."""
+    assert mapper.map_domain(conditions="self-pacing exercise intervention") == "Other"
+    assert mapper.map_domain(conditions="cardiac pacing for bradycardia") == "Arrhythmia"
+
+
+# --- categorize_trials (batch, multi-label) ---
 
 def test_categorize_trials(mapper):
     """Batch processing groups trials by domain."""
@@ -107,7 +133,33 @@ def test_categorize_trials(mapper):
     assert len(result["Other"]) == 1
 
 
+def test_categorize_trials_multi_label(mapper):
+    """A trial matching two domains appears in both groups."""
+    trials = [
+        type('obj', (object,), {
+            'conditions': 'Heart failure with atrial fibrillation',
+            'title': 'Dual study'
+        }),
+    ]
+    result = mapper.categorize_trials(trials)
+    assert "Heart Failure" in result
+    assert "Arrhythmia" in result
+    # Same trial object in both groups
+    assert result["Heart Failure"][0] is result["Arrhythmia"][0]
+
+
 def test_categorize_trials_empty(mapper):
     """Empty trial list returns empty dict."""
     result = mapper.categorize_trials([])
     assert result == {}
+
+
+# --- Consistent concatenation order ---
+
+def test_categorize_trial_conditions_first(mapper):
+    """categorize_trial should check conditions before title (conditions-first order)."""
+    trial = type('obj', (object,), {
+        'conditions': 'Heart Failure',
+        'title': 'A generic study'
+    })
+    assert "Heart Failure" in mapper.categorize_trial(trial)

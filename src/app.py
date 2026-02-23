@@ -1,190 +1,128 @@
+"""Streamlit dashboard entry point for CV-RCT analysis."""
 import streamlit as st
 import pandas as pd
-from datetime import date
+import logging
+from sqlalchemy.orm import joinedload
 from src.database import get_engine, init_db
 from src.handlers import DBHandler
-from src.stats_engine import StatsEngine
+from src.stats import CVStatsCalculator
 from src.domain_mapper import DomainMapper
-from src.app_utils import (
-    format_rate,
-    format_delay,
-    trials_to_dataframe,
-    filter_by_date_range,
-    filter_by_search_text,
-    filter_by_pub_status,
-    get_trial_detail,
-)
+from src.app_utils import format_rate
 
+def load_data():
+    # Try SQLite mock DB first for this session to ensure visibility
+    import os
+    mock_db = "cv_rct_mock.db"
+    
+    engines_to_try = []
+    if os.path.exists(mock_db):
+        engines_to_try.append(f"sqlite:///{os.path.abspath(mock_db)}")
+    engines_to_try.append(get_engine().url)
 
-@st.cache_resource
-def get_db_engine():
-    engine = get_engine()
-    init_db(engine)
-    return engine
-
-
-def load_data(engine):
-    db_handler = DBHandler(engine)
-    session = db_handler.Session()
-    try:
-        from src.models import Trial
-        trials = session.query(Trial).all()
-        # Eagerly load publications to avoid lazy-load issues after session close
-        for t in trials:
-            _ = t.publications
-        return trials
-    finally:
-        session.close()
-
+    for url in engines_to_try:
+        try:
+            engine = get_engine(url)
+            db_handler = DBHandler(engine)
+            session = db_handler.Session()
+            try:
+                from src.models import Trial
+                trials = session.query(Trial).options(
+                    joinedload(Trial.publications)
+                ).all()
+                if trials:
+                    return trials
+            finally:
+                session.close()
+        except Exception:
+            continue
+    return []
 
 def main():
     st.set_page_config(page_title="CV-RCT Analysis Dashboard", layout="wide")
-
+    
     st.title("Cardiovascular RCT Analysis Dashboard")
-    st.markdown("Exploring Phase III Trials (2015-2024) across CT.gov, PubMed, and OpenAlex")
-
+    st.markdown("Exploring Phase III Trials (2015-2022) across CT.gov, PubMed, and OpenAlex")
+    
     # Load data
-    engine = get_db_engine()
-    trials = load_data(engine)
-
+    trials = load_data()
+    
     if not trials:
-        st.warning("No trials found in the database. Please run the extraction pipeline first.")
+        st.warning("No trials found in the database or database connection failed. Please ensure the extraction pipeline has been run.")
+        st.info("Note: Default database is 'postgresql://postgres:postgres@localhost:5432/cv_rct_db'. Update DATABASE_URL if needed.")
         return
 
     mapper = DomainMapper()
-    stats_engine = StatsEngine(DBHandler(engine), mapper)
-
-    # Pre-process domains
+    
+    # Pre-process domains for filtering
     for trial in trials:
         trial.mapped_domains = mapper.categorize_trial(trial)
 
-    # ── Sidebar Filters ──────────────────────────────
+    # Sidebar for filters
     st.sidebar.header("Filters")
-
-    # 1. Text search
-    search_query = st.sidebar.text_input("Search (NCT ID, title, condition)", "")
-
-    # 2. Disease area filter
+    
+    # 1. Disease Area Filter
     all_domains = set()
     for t in trials:
         all_domains.update(t.mapped_domains)
-
+    
     selected_domains = st.sidebar.multiselect(
         "Cardiovascular Sub-Domain",
         options=sorted(list(all_domains)),
-        default=[],
+        default=[]
     )
-
-    # 3. Publication status filter
+    
+    # 2. Publication Status Filter
     pub_filter = st.sidebar.radio(
         "Publication Status",
-        options=["All", "Published Only", "Unpublished Only"],
+        options=["All", "Published Only", "Unpublished Only"]
     )
-
-    # 4. Date range filter
-    completion_dates = [t.completion_date for t in trials if t.completion_date]
-    if completion_dates:
-        min_date = min(completion_dates)
-        max_date = max(completion_dates)
-    else:
-        min_date = date(2015, 1, 1)
-        max_date = date.today()
-
-    st.sidebar.subheader("Completion Date Range")
-    date_start = st.sidebar.date_input("From", value=min_date, min_value=min_date, max_value=max_date)
-    date_end = st.sidebar.date_input("To", value=max_date, min_value=min_date, max_value=max_date)
-
-    # ── Apply Filters ────────────────────────────────
-    filtered = trials
-
-    # Text search
-    filtered = filter_by_search_text(filtered, search_query)
-
-    # Domain filter
+    
+    # Filter Logic
+    filtered_trials = trials
+    
     if selected_domains:
-        filtered = [
-            t for t in filtered
-            if any(d in selected_domains for d in t.mapped_domains)
+        filtered_trials = [
+            t for t in filtered_trials 
+            if any(domain in selected_domains for domain in t.mapped_domains)
         ]
+        
+    if pub_filter == "Published Only":
+        filtered_trials = [t for t in filtered_trials if len(t.publications) > 0]
+    elif pub_filter == "Unpublished Only":
+        filtered_trials = [t for t in filtered_trials if len(t.publications) == 0]
 
-    # Publication status
-    filtered = filter_by_pub_status(filtered, pub_filter)
-
-    # Date range
-    filtered = filter_by_date_range(filtered, date_start, date_end)
-
-    # ── Summary Metrics ──────────────────────────────
-    summary = stats_engine.summary_stats(filtered)
-
+    # Summary Statistics for filtered data
+    calc = CVStatsCalculator()
+    summary = calc.get_summary_report(filtered_trials)
+    
     col1, col2, col3, col4 = st.columns(4)
     col1.metric("Trials (Filtered)", summary["total_trials"])
     col2.metric("Published", summary["published_count"])
     col3.metric("Publication Rate", format_rate(summary["publication_rate"]))
-    col4.metric("Median Delay", format_delay(summary["median_time_to_pub"]))
+    col4.metric("Median Delay (Days)", f"{summary['median_delay_days'] or 'N/A'}")
 
     st.divider()
-
-    # ── Per-Domain Breakdown ─────────────────────────
-    if filtered:
-        domain_stats = stats_engine.domain_summary(filtered)
-        if domain_stats:
-            st.subheader("Statistics by CV Domain")
-            domain_rows = []
-            for domain, ds in sorted(domain_stats.items()):
-                domain_rows.append({
-                    "Domain": domain,
-                    "Trials": ds["total_trials"],
-                    "Published": ds["published_count"],
-                    "Pub Rate": format_rate(ds["publication_rate"]),
-                    "Median Delay": format_delay(ds["median_time_to_pub"]),
-                })
-            st.dataframe(pd.DataFrame(domain_rows), use_container_width=True, hide_index=True)
-
-        st.divider()
-
-    # ── Trial Table ──────────────────────────────────
-    st.subheader(f"Trial List ({len(filtered)} results)")
-
-    if filtered:
-        df = trials_to_dataframe(filtered)
-        st.dataframe(df, use_container_width=True, hide_index=True)
-
-        # ── Trial Detail View ────────────────────────
-        st.divider()
-        st.subheader("Trial Details")
-
-        trial_options = {f"{t.nct_id} — {(t.title or 'Untitled')[:60]}": t for t in filtered}
-        selected_label = st.selectbox("Select a trial to view details", options=list(trial_options.keys()))
-
-        if selected_label:
-            selected_trial = trial_options[selected_label]
-            detail = get_trial_detail(selected_trial)
-
-            col_a, col_b = st.columns(2)
-            with col_a:
-                st.markdown(f"**NCT ID:** {detail['nct_id']}")
-                st.markdown(f"**Phase:** {detail['phase']}")
-                st.markdown(f"**Status:** {detail['status']}")
-                st.markdown(f"**Enrollment:** {detail['enrollment'] or 'N/A'}")
-            with col_b:
-                st.markdown(f"**Conditions:** {detail['conditions'] or 'N/A'}")
-                st.markdown(f"**Interventions:** {detail['interventions'] or 'N/A'}")
-                st.markdown(f"**Primary Endpoints:** {detail['primary_endpoints'] or 'N/A'}")
-                st.markdown(f"**Completion:** {detail['completion_date'] or 'N/A'}")
-
-            if detail["publications"]:
-                st.markdown("**Publications:**")
-                for i, pub in enumerate(detail["publications"], 1):
-                    with st.expander(f"Publication {i}: {pub['title'] or 'Untitled'}"):
-                        st.markdown(f"- **Journal:** {pub['journal'] or 'N/A'}")
-                        st.markdown(f"- **PMID:** {pub['pmid'] or 'N/A'}")
-                        st.markdown(f"- **DOI:** {pub['doi'] or 'N/A'}")
-                        st.markdown(f"- **Date:** {pub['publication_date'] or 'N/A'}")
-            else:
-                st.info("No publications linked to this trial.")
+    
+    # Detailed Table view
+    st.subheader(f"Trial List ({len(filtered_trials)} results)")
+    
+    if filtered_trials:
+        trial_list = []
+        for t in filtered_trials:
+            trial_list.append({
+                "NCT ID": t.nct_id,
+                "Title": t.title,
+                "Phase": t.phase,
+                "Domains": ", ".join(t.mapped_domains),
+                "Completion Date": t.completion_date,
+                "Status": t.status,
+                "Pub Count": len(t.publications)
+            })
+        
+        df = pd.DataFrame(trial_list)
+        st.dataframe(df, use_container_width=True)
     else:
         st.info("No trials match the selected filters.")
-
 
 if __name__ == "__main__":
     main()

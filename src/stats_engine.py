@@ -1,21 +1,21 @@
+"""Statistical aggregation engine for CV-RCT trials."""
 import statistics
-from collections import defaultdict
 
 
 class StatsEngine:
     """
-    Statistical aggregation engine for CV-RCT trials.
     Computes time-to-publication, publication rates, and domain-level summaries.
+    Operates on lists of trial objects with .publications relationships.
     """
 
-    def __init__(self, db_handler, domain_mapper):
-        self.db_handler = db_handler
+    def __init__(self, domain_mapper):
         self.domain_mapper = domain_mapper
 
     def time_to_publication(self, trial):
         """
         Returns days between trial completion_date and earliest publication_date.
-        Returns None if either date is missing or trial has no publications.
+        Returns None if either date is missing, trial has no publications,
+        or publication precedes completion (data quality issue).
         """
         if not trial.completion_date or not trial.publications:
             return None
@@ -28,7 +28,10 @@ class StatsEngine:
             return None
 
         earliest = min(pub_dates)
-        return (earliest - trial.completion_date).days
+        days = (earliest - trial.completion_date).days
+        if days < 0:
+            return None
+        return days
 
     def publication_rate(self, trials):
         """Returns fraction of trials that have at least one publication."""
@@ -82,23 +85,3 @@ class StatsEngine:
         for domain, domain_trials in groups.items():
             result[domain] = self.summary_stats(domain_trials)
         return result
-
-    def detect_discrepancies(self, trials):
-        """
-        Detects enrollment mismatches between trial and publication data.
-        Returns list of discrepancy dicts.
-        """
-        discrepancies = []
-        for trial in trials:
-            trial_enrollment = getattr(trial, 'enrollment', None)
-            if trial_enrollment is None:
-                continue
-            for pub in trial.publications:
-                pub_enrollment = getattr(pub, 'reported_enrollment', None)
-                if pub_enrollment is not None and pub_enrollment != trial_enrollment:
-                    discrepancies.append({
-                        "nct_id": trial.nct_id,
-                        "trial_enrollment": trial_enrollment,
-                        "pub_enrollment": pub_enrollment,
-                    })
-        return discrepancies

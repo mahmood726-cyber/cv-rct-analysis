@@ -23,9 +23,12 @@ class Reconciler:
             return
 
         for pmid in pmids:
-            # Check if we already have this publication
-            # (Basic logic: could be improved with a get_publication_by_pmid method)
-            
+            # Skip if publication already exists for this trial
+            existing_pubs = self.db_handler.get_publications_for_trial(trial.id)
+            if any(p.pmid == pmid for p in existing_pubs):
+                self.logger.info(f"PMID {pmid} already linked to {nct_id}, skipping.")
+                continue
+
             work_data = await self.openalex_client.get_work_by_pmid(pmid)
             
             if work_data:

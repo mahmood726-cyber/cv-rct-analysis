@@ -1,3 +1,4 @@
+"""Categorizes clinical trials into cardiovascular sub-domains via keyword matching."""
 import re
 from collections import defaultdict
 
@@ -5,33 +6,46 @@ from collections import defaultdict
 class DomainMapper:
     """
     Categorizes trials into cardiovascular sub-domains based on text analysis
-    of titles and conditions.
+    of titles and conditions. Domain priority follows insertion order
+    (Python 3.7+ dict ordering guarantee).
     """
 
     DOMAIN_RULES = {
         "Heart Failure": [
-            r"heart failure", r"hfpef", r"hfref", r"cardiomyopathy",
-            r"cardiac failure",
+            r"heart failure", r"\bhfpef\b", r"\bhfref\b", r"cardiomyopathy",
+            r"cardiac failure", r"ventricular dysfunction",
         ],
         "Coronary Artery Disease": [
-            r"coronary", r"ischemia", r"ischemic", r"angina",
-            r"myocardial infarction", r"stemi", r"nstemi",
-            r"acute coronary syndrome", r"\bacs\b", r"\bcad\b",
+            r"coronary", r"ischemia", r"ischemic heart", r"angina",
+            r"myocardial infarction", r"\bstemi\b", r"\bnstemi\b",
+            r"acute coronary syndrome", r"\bcad\b",
+            r"percutaneous coronary", r"\bpci\b", r"\bcabg\b",
         ],
         "Arrhythmia": [
-            r"arrhythmia", r"fibrillation", r"tachycardia", r"bradycardia",
-            r"flutter", r"ablation", r"pacing", r"supraventricular",
+            r"arrhythmia", r"atrial fibrillation", r"atrial flutter",
+            r"ventricular tachycardia", r"bradycardia",
+            r"supraventricular", r"cardiac ablation", r"catheter ablation",
+            r"cardiac pacing", r"\bpacemaker\b", r"\bicd\b", r"\bcrt\b",
         ],
         "Valvular Disease": [
             r"valve", r"aortic stenosis", r"mitral", r"regurgitation",
-            r"tavi", r"tavr", r"valvular",
+            r"\btavi\b", r"\btavr\b", r"valvular",
+        ],
+        "Pulmonary Hypertension": [
+            r"pulmonary hypertension", r"pulmonary arterial hypertension",
+            r"\bpah\b",
         ],
         "Hypertension": [
             r"hypertension", r"blood pressure", r"antihypertensive",
         ],
+        "Lipid Disorders": [
+            r"dyslipidemia", r"hyperlipidemia", r"cholesterol",
+            r"\bstatin\b", r"\bpcsk9\b", r"lipid-lowering",
+        ],
         "Vascular Disease": [
-            r"stroke", r"cerebrovascular", r"\btia\b",
+            r"\bstroke\b", r"cerebrovascular", r"\btia\b",
             r"peripheral arterial", r"aneurysm", r"thrombosis",
+            r"deep vein", r"pulmonary embolism", r"\bdvt\b", r"\bpad\b",
         ],
     }
 
@@ -61,13 +75,14 @@ class DomainMapper:
         return domains[0]
 
     def categorize_trial(self, trial):
-        """Categorizes a Trial object by analyzing its title and conditions."""
-        text_to_analyze = f"{trial.title or ''} {trial.conditions or ''}"
+        """Categorizes a Trial object by analyzing its conditions and title."""
+        text_to_analyze = f"{trial.conditions or ''} {trial.title or ''}"
         return self.map_to_domains(text_to_analyze)
 
     def categorize_trials(self, trials):
         """
         Batch-categorize trials into domain groups.
+        Each trial is assigned to ALL matching domains (multi-label).
         Returns dict of {domain: [trial_list]}.
         """
         if not trials:
@@ -75,10 +90,8 @@ class DomainMapper:
 
         groups = defaultdict(list)
         for trial in trials:
-            domain = self.map_domain(
-                conditions=getattr(trial, 'conditions', '') or '',
-                title=getattr(trial, 'title', '') or '',
-            )
-            groups[domain].append(trial)
+            domains = self.categorize_trial(trial)
+            for domain in domains:
+                groups[domain].append(trial)
 
         return dict(groups)

@@ -26,52 +26,58 @@ def _make_pub(publication_date):
 
 
 @pytest.fixture
-def engine():
-    db_handler = MagicMock()
+def stats_engine():
     domain_mapper = DomainMapper()
-    return StatsEngine(db_handler, domain_mapper)
+    return StatsEngine(domain_mapper)
 
 
 # --- time_to_publication ---
 
-def test_time_to_publication(engine):
+def test_time_to_publication(stats_engine):
     """Completion 2020-01-01 + Publication 2021-06-15 = 531 days."""
     pub = _make_pub(date(2021, 6, 15))
     trial = _make_trial("NCT001", "HF", "Study", date(2020, 1, 1), [pub])
-    assert engine.time_to_publication(trial) == 531
+    assert stats_engine.time_to_publication(trial) == 531
 
 
-def test_time_to_publication_multiple_pubs(engine):
+def test_time_to_publication_multiple_pubs(stats_engine):
     """Uses earliest publication date."""
     pub1 = _make_pub(date(2022, 1, 1))
     pub2 = _make_pub(date(2021, 6, 15))  # earlier
     trial = _make_trial("NCT002", "HF", "Study", date(2020, 1, 1), [pub1, pub2])
-    assert engine.time_to_publication(trial) == 531
+    assert stats_engine.time_to_publication(trial) == 531
 
 
-def test_time_to_publication_no_pub(engine):
+def test_time_to_publication_no_pub(stats_engine):
     """Trial without publications returns None."""
     trial = _make_trial("NCT003", "HF", "Study", date(2020, 1, 1), [])
-    assert engine.time_to_publication(trial) is None
+    assert stats_engine.time_to_publication(trial) is None
 
 
-def test_time_to_publication_no_completion(engine):
+def test_time_to_publication_no_completion(stats_engine):
     """Trial without completion_date returns None."""
     pub = _make_pub(date(2021, 6, 15))
     trial = _make_trial("NCT004", "HF", "Study", None, [pub])
-    assert engine.time_to_publication(trial) is None
+    assert stats_engine.time_to_publication(trial) is None
 
 
-def test_time_to_publication_pub_no_date(engine):
+def test_time_to_publication_pub_no_date(stats_engine):
     """Publication with None date returns None."""
     pub = _make_pub(None)
     trial = _make_trial("NCT005", "HF", "Study", date(2020, 1, 1), [pub])
-    assert engine.time_to_publication(trial) is None
+    assert stats_engine.time_to_publication(trial) is None
+
+
+def test_time_to_publication_negative(stats_engine):
+    """Publication before trial completion returns None (data quality issue)."""
+    pub = _make_pub(date(2019, 1, 1))  # before completion
+    trial = _make_trial("NCT006", "HF", "Study", date(2020, 1, 1), [pub])
+    assert stats_engine.time_to_publication(trial) is None
 
 
 # --- publication_rate ---
 
-def test_publication_rate(engine):
+def test_publication_rate(stats_engine):
     """10 trials, 7 with publications -> 0.70."""
     trials = []
     for i in range(7):
@@ -80,23 +86,29 @@ def test_publication_rate(engine):
     for i in range(3):
         trials.append(_make_trial(f"NCT1{i}", "HF", "S", date(2020, 1, 1), []))
 
-    assert engine.publication_rate(trials) == pytest.approx(0.70)
+    assert stats_engine.publication_rate(trials) == pytest.approx(0.70)
 
 
-def test_publication_rate_empty(engine):
+def test_publication_rate_empty(stats_engine):
     """0 trials -> 0.0."""
-    assert engine.publication_rate([]) == 0.0
+    assert stats_engine.publication_rate([]) == 0.0
 
 
-def test_publication_rate_all_published(engine):
+def test_publication_rate_all_published(stats_engine):
     trials = [_make_trial("NCT01", "HF", "S", date(2020, 1, 1),
                           [_make_pub(date(2021, 1, 1))])]
-    assert engine.publication_rate(trials) == 1.0
+    assert stats_engine.publication_rate(trials) == 1.0
+
+
+def test_publication_rate_single_trial(stats_engine):
+    """Single unpublished trial."""
+    trials = [_make_trial("NCT01", "HF", "S", date(2020, 1, 1), [])]
+    assert stats_engine.publication_rate(trials) == 0.0
 
 
 # --- summary_stats ---
 
-def test_summary_stats(engine):
+def test_summary_stats(stats_engine):
     """Full summary with aggregated metrics."""
     pub1 = _make_pub(date(2021, 6, 15))   # 531 days from 2020-01-01
     pub2 = _make_pub(date(2020, 7, 1))    # 182 days from 2020-01-01
@@ -107,7 +119,7 @@ def test_summary_stats(engine):
         _make_trial("NCT003", "Atrial fibrillation", "AF Study", date(2020, 1, 1), []),
     ]
 
-    stats = engine.summary_stats(trials)
+    stats = stats_engine.summary_stats(trials)
 
     assert stats["total_trials"] == 3
     assert stats["published_count"] == 2
@@ -117,13 +129,13 @@ def test_summary_stats(engine):
     assert stats["mean_time_to_pub"] == pytest.approx((531 + 182) / 2)
 
 
-def test_summary_stats_no_publications(engine):
+def test_summary_stats_no_publications(stats_engine):
     """All unpublished trials."""
     trials = [
         _make_trial("NCT001", "HF", "S", date(2020, 1, 1), []),
         _make_trial("NCT002", "HF", "S", date(2020, 1, 1), []),
     ]
-    stats = engine.summary_stats(trials)
+    stats = stats_engine.summary_stats(trials)
     assert stats["total_trials"] == 2
     assert stats["published_count"] == 0
     assert stats["publication_rate"] == 0.0
@@ -131,9 +143,32 @@ def test_summary_stats_no_publications(engine):
     assert stats["mean_time_to_pub"] is None
 
 
+def test_summary_stats_negative_delays_excluded(stats_engine):
+    """Negative time-to-pub (pre-completion publication) is excluded from stats."""
+    pub_before = _make_pub(date(2019, 6, 1))  # before completion
+    pub_after = _make_pub(date(2021, 1, 1))   # 366 days after
+
+    trials = [
+        _make_trial("NCT001", "HF", "S", date(2020, 1, 1), [pub_before]),
+        _make_trial("NCT002", "HF", "S", date(2020, 1, 1), [pub_after]),
+    ]
+    stats = stats_engine.summary_stats(trials)
+    assert stats["published_count"] == 2  # both have publications
+    # Only the valid delay (366) should appear in median/mean
+    assert stats["median_time_to_pub"] == 366
+    assert stats["mean_time_to_pub"] == 366
+
+
+def test_summary_stats_empty(stats_engine):
+    """Empty list returns zeroed stats."""
+    stats = stats_engine.summary_stats([])
+    assert stats["total_trials"] == 0
+    assert stats["publication_rate"] == 0.0
+
+
 # --- domain_summary ---
 
-def test_domain_summary(engine):
+def test_domain_summary(stats_engine):
     """Groups trials by domain and computes per-domain stats."""
     pub_hf = _make_pub(date(2021, 1, 1))
     pub_cad = _make_pub(date(2021, 6, 15))
@@ -144,7 +179,7 @@ def test_domain_summary(engine):
         _make_trial("NCT003", "Coronary artery disease", "CAD Study", date(2020, 1, 1), [pub_cad]),
     ]
 
-    result = engine.domain_summary(trials)
+    result = stats_engine.domain_summary(trials)
 
     assert "Heart Failure" in result
     assert "Coronary Artery Disease" in result
@@ -155,35 +190,6 @@ def test_domain_summary(engine):
     assert result["Coronary Artery Disease"]["publication_rate"] == 1.0
 
 
-def test_domain_summary_empty(engine):
+def test_domain_summary_empty(stats_engine):
     """Empty trial list returns empty dict."""
-    assert engine.domain_summary([]) == {}
-
-
-# --- discrepancy_detection ---
-
-def test_discrepancy_detection(engine):
-    """Detects enrollment mismatch between trial and publication."""
-    pub = _make_pub(date(2021, 1, 1))
-    pub.reported_enrollment = 200  # publication says 200 but trial says 100
-
-    trial = _make_trial("NCT001", "HF", "Study", date(2020, 1, 1), [pub])
-    trial.enrollment = 100
-
-    discrepancies = engine.detect_discrepancies([trial])
-    assert len(discrepancies) == 1
-    assert discrepancies[0]["nct_id"] == "NCT001"
-    assert discrepancies[0]["trial_enrollment"] == 100
-    assert discrepancies[0]["pub_enrollment"] == 200
-
-
-def test_discrepancy_detection_no_mismatch(engine):
-    """No discrepancy when enrollments match or publication has no reported enrollment."""
-    pub = _make_pub(date(2021, 1, 1))
-    # No reported_enrollment attribute — should not flag
-
-    trial = _make_trial("NCT001", "HF", "Study", date(2020, 1, 1), [pub])
-    trial.enrollment = 100
-
-    discrepancies = engine.detect_discrepancies([trial])
-    assert len(discrepancies) == 0
+    assert stats_engine.domain_summary([]) == {}
