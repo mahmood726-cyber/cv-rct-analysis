@@ -22,6 +22,6 @@
 - [x] Task: Implement Forest plot and statistical summary visualizations. (e60366f)
     - [ ] Integrate plotly for interactive charts.
     - [ ] Implement bias detection (Funnel plots) view.
-- [ ] Task: Add automated reporting and data export features.
+- [x] Task: Add automated reporting and data export features. (f7c1624)
     - [ ] Implement CSV/PDF export from the dashboard.
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Visualizations & Reporting' (Protocol in workflow.md)
