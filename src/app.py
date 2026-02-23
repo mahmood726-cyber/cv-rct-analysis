@@ -1,31 +1,36 @@
 """Streamlit dashboard entry point for CV-RCT analysis."""
+import os
+import logging
 import streamlit as st
 import pandas as pd
-import logging
 from sqlalchemy.orm import joinedload
-from src.database import get_engine, init_db
+from src.database import get_engine
 from src.handlers import DBHandler
 from src.stats import CVStatsCalculator
 from src.domain_mapper import DomainMapper
+from src.models import Trial
 from src.app_utils import format_rate
 
-def load_data():
-    # Try SQLite mock DB first for this session to ensure visibility
-    import os
-    mock_db = "cv_rct_mock.db"
-    
-    engines_to_try = []
-    if os.path.exists(mock_db):
-        engines_to_try.append(f"sqlite:///{os.path.abspath(mock_db)}")
-    engines_to_try.append(get_engine().url)
+logger = logging.getLogger(__name__)
 
-    for url in engines_to_try:
+
+def load_data():
+    """Load trials from SQLite mock DB (if present) or configured PostgreSQL."""
+    mock_db = "cv_rct_mock.db"
+
+    urls_to_try = []
+    if os.path.exists(mock_db):
+        urls_to_try.append(f"sqlite:///{os.path.abspath(mock_db)}")
+    urls_to_try.append(os.getenv("DATABASE_URL",
+                                  "postgresql://postgres:postgres@localhost:5432/cv_rct_db"))
+
+    for url in urls_to_try:
+        engine = None
         try:
             engine = get_engine(url)
             db_handler = DBHandler(engine)
             session = db_handler.Session()
             try:
-                from src.models import Trial
                 trials = session.query(Trial).options(
                     joinedload(Trial.publications)
                 ).all()
@@ -33,8 +38,12 @@ def load_data():
                     return trials
             finally:
                 session.close()
-        except Exception:
+        except Exception as exc:
+            logger.debug("Could not load from %s: %s", url, exc)
             continue
+        finally:
+            if engine is not None:
+                engine.dispose()
     return []
 
 def main():
@@ -99,7 +108,42 @@ def main():
     col1.metric("Trials (Filtered)", summary["total_trials"])
     col2.metric("Published", summary["published_count"])
     col3.metric("Publication Rate", format_rate(summary["publication_rate"]))
-    col4.metric("Median Delay (Days)", f"{summary['median_delay_days'] or 'N/A'}")
+    median = summary['median_delay_days']
+    col4.metric("Median Delay (Days)", "N/A" if median is None else str(median))
+
+    st.divider()
+    
+    # Visualizations
+    st.subheader("Meta-Analysis Visualizations")
+    from src.viz import VizGenerator
+    viz = VizGenerator()
+    
+    # Mock some visualization data for the demo
+    # In a real scenario, this would come from extracted primary outcome results
+    viz_data = []
+    for i, t in enumerate(filtered_trials):
+        # Generate some deterministic mock effect sizes based on NCT ID
+        import random
+        random.seed(t.nct_id)
+        es = random.uniform(-0.5, 0.2)
+        viz_data.append({
+            "name": t.nct_id,
+            "effect_size": es,
+            "lower_ci": es - 0.15,
+            "upper_ci": es + 0.15,
+            "enrollment": t.enrollment or 100
+        })
+    
+    if viz_data:
+        vcol1, vcol2 = st.columns(2)
+        with vcol1:
+            forest = viz.create_forest_plot(viz_data)
+            st.plotly_chart(forest, use_container_width=True)
+        with vcol2:
+            funnel = viz.create_funnel_plot(viz_data)
+            st.plotly_chart(funnel, use_container_width=True)
+    else:
+        st.info("No data available for visualizations.")
 
     st.divider()
     
