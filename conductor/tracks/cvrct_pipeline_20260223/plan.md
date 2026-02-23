@@ -1,13 +1,13 @@
 # Implementation Plan: CV-RCT Extraction Pipeline
 
-## Phase 1: Environment Setup & Data Storage
+## Phase 1: Environment Setup & Data Storage [checkpoint: d8687e3]
 - [x] Task: Set up PostgreSQL database and schema for trial metadata. (8a7327c)
     - [ ] Define SQLAlchemy models for trials and publications.
     - [ ] Create database migration/initialization script.
 - [x] Task: Implement database connection and basic CRUD operations with tests. (ef91049)
     - [ ] Write unit tests for trial record insertion.
     - [ ] Implement database handler module.
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Environment Setup & Data Storage' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Environment Setup & Data Storage' (d8687e3)
 
 ## Phase 2: AACT Registry Extraction
 - [ ] Task: Develop AACT query engine to identify Phase III CV RCTs (2015-2022).
