@@ -9,14 +9,14 @@
     - [ ] Implement database handler module.
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Environment Setup & Data Storage' (d8687e3)
 
-## Phase 2: AACT Registry Extraction
+## Phase 2: AACT Registry Extraction [checkpoint: 5456c17]
 - [x] Task: Develop AACT query engine to identify Phase III CV RCTs (2015-2022). (f6fcec3)
     - [ ] Write tests for AACT query generation logic.
     - [ ] Implement AACT connector using psycopg2/SQLAlchemy.
 - [x] Task: Implement trial metadata extraction from AACT into PostgreSQL with tests. (04388ba)
     - [ ] Write tests for data transformation logic.
     - [ ] Implement extraction and storage routine.
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: AACT Registry Extraction' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: AACT Registry Extraction' (5456c17)
 
 ## Phase 3: PubMed & OpenAlex Cross-Referencing
 - [ ] Task: Implement asynchronous PubMed API client for publication searching.
