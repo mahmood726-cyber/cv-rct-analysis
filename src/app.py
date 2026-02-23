@@ -30,34 +30,78 @@ def main():
         st.warning("No trials found in the database. Please run the extraction pipeline first.")
         return
 
+    mapper = DomainMapper()
+    
+    # Pre-process domains for filtering
+    for trial in trials:
+        trial.mapped_domains = mapper.categorize_trial(trial)
+
     # Sidebar for filters
     st.sidebar.header("Filters")
     
-    # Summary Statistics
+    # 1. Disease Area Filter
+    all_domains = set()
+    for t in trials:
+        all_domains.update(t.mapped_domains)
+    
+    selected_domains = st.sidebar.multiselect(
+        "Cardiovascular Sub-Domain",
+        options=sorted(list(all_domains)),
+        default=[]
+    )
+    
+    # 2. Publication Status Filter
+    pub_filter = st.sidebar.radio(
+        "Publication Status",
+        options=["All", "Published Only", "Unpublished Only"]
+    )
+    
+    # Filter Logic
+    filtered_trials = trials
+    
+    if selected_domains:
+        filtered_trials = [
+            t for t in filtered_trials 
+            if any(domain in selected_domains for domain in t.mapped_domains)
+        ]
+        
+    if pub_filter == "Published Only":
+        filtered_trials = [t for t in filtered_trials if len(t.publications) > 0]
+    elif pub_filter == "Unpublished Only":
+        filtered_trials = [t for t in filtered_trials if len(t.publications) == 0]
+
+    # Summary Statistics for filtered data
     calc = CVStatsCalculator()
-    summary = calc.get_summary_report(trials)
+    summary = calc.get_summary_report(filtered_trials)
     
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Total Trials", summary["total_trials"])
-    col2.metric("Published Trials", summary["published_count"])
+    col1.metric("Trials (Filtered)", summary["total_trials"])
+    col2.metric("Published", summary["published_count"])
     col3.metric("Publication Rate", format_rate(summary["publication_rate"]))
     col4.metric("Median Delay (Days)", f"{summary['median_delay_days'] or 'N/A'}")
 
     st.divider()
-    st.subheader("Recent Trials")
     
-    # Simple table view
-    trial_list = []
-    for t in trials[:10]: # Show first 10 for now
-        trial_list.append({
-            "NCT ID": t.nct_id,
-            "Title": t.title,
-            "Phase": t.phase,
-            "Completion Date": t.completion_date,
-            "Status": t.status
-        })
+    # Detailed Table view
+    st.subheader(f"Trial List ({len(filtered_trials)} results)")
     
-    st.table(pd.DataFrame(trial_list))
+    if filtered_trials:
+        trial_list = []
+        for t in filtered_trials:
+            trial_list.append({
+                "NCT ID": t.nct_id,
+                "Title": t.title,
+                "Phase": t.phase,
+                "Domains": ", ".join(t.mapped_domains),
+                "Completion Date": t.completion_date,
+                "Status": t.status,
+                "Pub Count": len(t.publications)
+            })
+        
+        df = pd.DataFrame(trial_list)
+        st.dataframe(df, use_container_width=True)
+    else:
+        st.info("No trials match the selected filters.")
 
 if __name__ == "__main__":
     main()
