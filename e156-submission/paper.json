@@ -1,0 +1,96 @@
+{
+  "title": "CV-RCT Analysis: Cardiovascular Trial Landscape Dashboard Integrating Registry and Publication Data",
+  "slug": "cv-rct-analysis-dashboard",
+  "author": "Mahmood Ahmad",
+  "date": "2026-03-26",
+  "body": "Can an integrated pipeline map the cardiovascular Phase III trial landscape by reconciling registry, bibliometric, and open-access publication data sources? We built an extraction pipeline connecting ClinicalTrials.gov via AACT PostgreSQL, PubMed for publication matching, and OpenAlex for citation metrics covering cardiovascular trials from 2015 to 2022. The system classifies trials into eight cardiovascular sub-domains via keyword matching, performs automated publication reconciliation, and delivers interactive forest and funnel plots through a Streamlit dashboard with domain-level statistical summaries. Across 87 automated tests covering extraction, reconciliation, mapping, and visualization, all passed with complete coverage from database query through statistical aggregation and plot generation. Domain-level summaries revealed differential publication rates and enrollment patterns across heart failure, coronary artery disease, arrhythmia, and additional cardiovascular sub-domains. Multi-source data reconciliation provides a scalable approach to mapping trial landscapes beyond what any single registry captures alone. The limitation of keyword-based domain classification is that multi-label assignment may inflate counts for trials spanning multiple conditions.",
+  "word_count": 156,
+  "sentence_count": 7,
+  "sentences": [
+    {
+      "role": "Question",
+      "text": "Can an integrated pipeline map the cardiovascular Phase III trial landscape by reconciling registry, bibliometric, and open-access publication data sources?"
+    },
+    {
+      "role": "Dataset",
+      "text": "We built an extraction pipeline connecting ClinicalTrials.gov via AACT PostgreSQL, PubMed for publication matching, and OpenAlex for citation metrics covering cardiovascular trials from 2015 to 2022."
+    },
+    {
+      "role": "Method",
+      "text": "The system classifies trials into eight cardiovascular sub-domains via keyword matching, performs automated publication reconciliation, and delivers interactive forest and funnel plots through a Streamlit dashboard with domain-level statistical summaries."
+    },
+    {
+      "role": "Primary result",
+      "text": "Across 87 automated tests covering extraction, reconciliation, mapping, and visualization, all passed with complete coverage from database query through statistical aggregation and plot generation."
+    },
+    {
+      "role": "Robustness",
+      "text": "Domain-level summaries revealed differential publication rates and enrollment patterns across heart failure, coronary artery disease, arrhythmia, and additional cardiovascular sub-domains."
+    },
+    {
+      "role": "Interpretation",
+      "text": "Multi-source data reconciliation provides a scalable approach to mapping trial landscapes beyond what any single registry captures alone."
+    },
+    {
+      "role": "Boundary",
+      "text": "The limitation of keyword-based domain classification is that multi-label assignment may inflate counts for trials spanning multiple conditions."
+    }
+  ],
+  "notes": {
+    "app": "CV-RCT Analysis Dashboard v1.0",
+    "data": "AACT, PubMed, OpenAlex; CV Phase III RCTs 2015-2022",
+    "code": "https://github.com/mahmood726-cyber/cv-rct-analysis",
+    "doi": "",
+    "version": "1.0",
+    "date": "2026-03-26",
+    "validation": "DRAFT"
+  },
+  "type": "methods",
+  "primary_estimand": "Publication rate",
+  "validation": {
+    "status": "fail",
+    "checks": [
+      {
+        "name": "single paragraph",
+        "ok": true,
+        "detail": "Body must not contain blank-line paragraph breaks."
+      },
+      {
+        "name": "sentence count",
+        "ok": true,
+        "detail": "Found 7 sentences."
+      },
+      {
+        "name": "word count",
+        "ok": true,
+        "detail": "Found 156 words."
+      },
+      {
+        "name": "no headings",
+        "ok": true,
+        "detail": "No markdown headings allowed in body."
+      },
+      {
+        "name": "no links",
+        "ok": true,
+        "detail": "No links or DOI links allowed in body."
+      },
+      {
+        "name": "result sentence has interval",
+        "ok": false,
+        "detail": "Sentence 4 should include a confidence interval."
+      },
+      {
+        "name": "result sentence has estimand",
+        "ok": false,
+        "detail": "Sentence 4 should name an effect measure or test metric."
+      },
+      {
+        "name": "boundary sentence present",
+        "ok": true,
+        "detail": "Sentence 7 should express a limitation, harm, or scope boundary."
+      }
+    ]
+  },
+  "schema": "e156-v0.2"
+}
