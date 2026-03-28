@@ -52,26 +52,34 @@ class VizGenerator:
     def create_funnel_plot(self, trial_data):
         """
         Creates a Funnel plot to assess publication bias.
-        Expects 'effect_size' and 'standard_error' (or 1/sqrt(enrollment)).
+        Expects 'effect_size' and optionally 'standard_error'.
+        Falls back to 1/sqrt(enrollment) as SE proxy if SE not provided.
         """
         if not trial_data:
             return None
-            
+
         df = pd.DataFrame(trial_data)
-        
-        # If precision isn't provided, estimate from enrollment
-        if 'precision' not in df.columns and 'enrollment' in df.columns:
+
+        # Use SE if available; otherwise estimate from enrollment
+        if 'standard_error' in df.columns:
+            y_col = 'standard_error'
+            y_label = "Standard Error"
+        elif 'enrollment' in df.columns:
             import numpy as np
-            df['precision'] = np.sqrt(df['enrollment'])
+            df['se_proxy'] = 1.0 / np.sqrt(df['enrollment'].clip(lower=1))
+            y_col = 'se_proxy'
+            y_label = "SE Proxy (1/sqrt(N))"
+        else:
+            return None
 
         fig = px.scatter(
-            df, x="effect_size", y="precision",
+            df, x="effect_size", y=y_col,
             hover_name="name",
             title="Funnel Plot for Publication Bias Assessment",
-            labels={"effect_size": "Effect Size", "precision": "Precision (1/SE)"}
+            labels={"effect_size": "Effect Size", y_col: y_label}
         )
-        
+
         fig.update_layout(template="plotly_white")
-        fig.update_yaxes(autorange="reversed") # Standard funnel plot convention
-        
+        # Standard convention: high SE (imprecise/small) at bottom, low SE (precise/large) at top
+        # No reversal needed — SE naturally puts large studies (low SE) at top
         return fig

@@ -16,8 +16,8 @@ htmlcov/
 
 # Generated artifacts
 *.db
-selenium_error.png
-selenium_debug.html
+*.png
+*.html
 streamlit_debug.log
 streamlit_stdout.log
 streamlit_stderr.log

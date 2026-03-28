@@ -93,10 +93,13 @@ def populate_mock_data():
     
     for t_data in mock_trials:
         trial = db_handler.upsert_trial(t_data)
-        
-        # Check if we have pubs for this trial
+
+        # Link publications, skipping any that already exist (idempotent)
+        existing_pubs = db_handler.get_publications_for_trial(trial.id)
+        existing_pmids = {p.pmid for p in existing_pubs}
+
         for p_data in mock_pubs:
-            if p_data["nct_match"] == trial.nct_id:
+            if p_data["nct_match"] == trial.nct_id and p_data["pmid"] not in existing_pmids:
                 pub_entry = p_data.copy()
                 del pub_entry["nct_match"]
                 pub_entry["trial_id"] = trial.id

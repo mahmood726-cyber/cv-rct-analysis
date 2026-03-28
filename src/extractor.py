@@ -35,14 +35,16 @@ class CVRExtractor:
             with aact_engine.connect() as conn:
                 result = conn.execute(text(query_sql), params)
                 rows = result.mappings().all()
-                
+
                 self.logger.info(f"Found {len(rows)} trials in AACT. Processing...")
-                
+
                 for row in rows:
                     trial_data = self.transform_row(row)
                     self.db_handler.upsert_trial(trial_data)
-                    
+
             self.logger.info("Extraction and storage complete.")
         except Exception as e:
             self.logger.error(f"Error during extraction: {e}")
             raise
+        finally:
+            aact_engine.dispose()

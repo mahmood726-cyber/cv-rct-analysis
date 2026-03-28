@@ -1,6 +1,7 @@
 """Streamlit dashboard entry point for CV-RCT analysis."""
 import os
 import logging
+import random
 import streamlit as st
 import pandas as pd
 from sqlalchemy.orm import joinedload
@@ -143,10 +144,11 @@ def main():
     from src.viz import VizGenerator
     viz = VizGenerator()
     
-    # Visual data
+    st.caption("Note: Effect sizes below are **simulated** for demonstration purposes. "
+               "Actual clinical outcomes require separate extraction from trial publications.")
+
     viz_data = []
     for i, t in enumerate(filtered_trials):
-        import random
         random.seed(t.nct_id)
         es = random.uniform(-0.5, 0.2)
         viz_data.append({

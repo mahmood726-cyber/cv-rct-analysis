@@ -7,6 +7,15 @@ _PROTECTED_FIELDS = frozenset({"id", "publications"})
 
 
 class DBHandler:
+    """Database handler for Trial and Publication CRUD operations.
+
+    Note: Methods return ORM objects after closing the session. Scalar
+    attributes are preserved (expire_on_commit=False), but accessing
+    lazy-loaded relationships (e.g., trial.publications) on the returned
+    objects will raise DetachedInstanceError. Use joinedload() in your
+    own session if you need relationships.
+    """
+
     def __init__(self, engine):
         self.Session = sessionmaker(bind=engine, expire_on_commit=False)
 

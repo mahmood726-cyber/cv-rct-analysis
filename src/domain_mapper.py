@@ -25,7 +25,9 @@ class DomainMapper:
             r"arrhythmia", r"atrial fibrillation", r"atrial flutter",
             r"ventricular tachycardia", r"bradycardia",
             r"supraventricular", r"cardiac ablation", r"catheter ablation",
-            r"cardiac pacing", r"\bpacemaker\b", r"\bicd\b", r"\bcrt\b",
+            r"cardiac pacing", r"\bpacemaker\b",
+            r"\bicd\b(?!-\d)",  # ICD device, not ICD-10/ICD-9 coding
+            r"cardiac resynchronization",
         ],
         "Valvular Disease": [
             r"valve", r"aortic stenosis", r"mitral", r"regurgitation",
@@ -49,8 +51,19 @@ class DomainMapper:
         ],
     }
 
+    # Domains that should suppress more general domains when matched.
+    # Key = specific domain, Value = set of general domains to exclude.
+    DOMAIN_EXCLUSIONS = {
+        "Pulmonary Hypertension": {"Hypertension"},
+    }
+
     def map_to_domains(self, text):
-        """Maps a string of text to one or more CV domains."""
+        """Maps a string of text to one or more CV domains.
+
+        Applies DOMAIN_EXCLUSIONS to prevent overly broad domains from
+        co-occurring with their specific counterparts (e.g., 'Pulmonary
+        Hypertension' suppresses 'Hypertension').
+        """
         if not text:
             return ["Other"]
 
@@ -62,6 +75,13 @@ class DomainMapper:
                 if re.search(pattern, text_lower):
                     found_domains.append(domain)
                     break
+
+        # Remove general domains suppressed by more specific matches
+        excluded = set()
+        for domain in found_domains:
+            excluded.update(self.DOMAIN_EXCLUSIONS.get(domain, set()))
+        if excluded:
+            found_domains = [d for d in found_domains if d not in excluded]
 
         return found_domains if found_domains else ["Other"]
 

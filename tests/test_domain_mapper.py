@@ -122,6 +122,29 @@ def test_pacing_not_false_positive(mapper):
     assert mapper.map_domain(conditions="cardiac pacing for bradycardia") == "Arrhythmia"
 
 
+def test_icd_coding_not_false_positive(mapper):
+    """ICD-10/ICD-9 diagnostic coding should not trigger Arrhythmia."""
+    assert mapper.map_domain(conditions="ICD-10 coded diagnoses for hypertension") == "Hypertension"
+    assert mapper.map_domain(conditions="ICD-9 coding validation study") == "Other"
+    # But ICD device alone should still match
+    assert mapper.map_domain(conditions="ICD implantation for ventricular tachycardia") == "Arrhythmia"
+
+
+def test_crt_specificity(mapper):
+    """CRT should match cardiac resynchronization (Arrhythmia), not other CRT abbreviations."""
+    # Cardiac resynchronization is an Arrhythmia device therapy
+    assert mapper.map_domain(conditions="cardiac resynchronization therapy") == "Arrhythmia"
+    # Generic CRT (e.g., display technology, chemoradiotherapy) should not match
+    assert mapper.map_domain(conditions="CRT display technology") == "Other"
+
+
+def test_pulmonary_hypertension_excludes_systemic(mapper):
+    """Pulmonary hypertension should NOT also match generic Hypertension in multi-label."""
+    domains = mapper.map_to_domains("pulmonary hypertension treatment")
+    assert "Pulmonary Hypertension" in domains
+    assert "Hypertension" not in domains
+
+
 # --- categorize_trials (batch, multi-label) ---
 
 def test_categorize_trials(mapper):
