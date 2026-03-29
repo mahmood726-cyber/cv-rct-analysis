@@ -3,11 +3,11 @@
   "slug": "cv-rct-analysis-dashboard",
   "author": "Mahmood Ahmad",
   "date": "2026-03-26",
-  "path": "C:\\Projects\\cv-rct-analysis",
+  "path": "/mnt/c/Projects/cv-rct-analysis",
   "type": "methods",
   "primary_estimand": "Publication rate",
   "summary": "A Streamlit dashboard integrating ClinicalTrials.gov AACT data with PubMed and OpenAlex to map the cardiovascular Phase III RCT landscape from 2015 to 2022.",
-  "body": "Can an integrated pipeline map the cardiovascular Phase III trial landscape by reconciling registry, bibliometric, and open-access publication data sources? We built an extraction pipeline connecting ClinicalTrials.gov via AACT PostgreSQL, PubMed for publication matching, and OpenAlex for citation metrics covering cardiovascular trials from 2015 to 2022. The system classifies trials into eight cardiovascular sub-domains via keyword matching, performs automated publication reconciliation, and delivers interactive forest and funnel plots through a Streamlit dashboard with domain-level statistical summaries. Across 87 automated tests covering extraction, reconciliation, mapping, and visualization, all passed with complete coverage from database query through statistical aggregation and plot generation. Domain-level summaries revealed differential publication rates and enrollment patterns across heart failure, coronary artery disease, arrhythmia, and additional cardiovascular sub-domains. Multi-source data reconciliation provides a scalable approach to mapping trial landscapes beyond what any single registry captures alone. The limitation of keyword-based domain classification is that multi-label assignment may inflate counts for trials spanning multiple conditions.",
+  "body": "Can an integrated pipeline map the cardiovascular Phase III trial landscape by reconciling registry, bibliometric, and open-access publication data sources? We built an extraction pipeline connecting ClinicalTrials.gov via AACT PostgreSQL, PubMed for publication matching, and OpenAlex for citation metrics covering cardiovascular trials from 2015 to 2022. The system classifies trials into eight cardiovascular sub-domains via keyword matching, performs automated publication reconciliation, and delivers interactive forest and funnel plots through a summaries. Across 87 of 87 automated validation tests (100 percent pass rate) covering extraction and visualization, all passed with complete coverage from database query through statistical aggregation and plot generation. Domain-level summaries revealed differential publication rates and enrollment patterns across heart failure, coronary artery disease, arrhythmia, and additional cardiovascular sub-domains. Multi-source data reconciliation provides a scalable approach to mapping trial landscapes beyond what any single registry captures alone. The limitation of keyword-based domain classification is that multi-label assignment may inflate counts for trials spanning multiple conditions.",
   "sentences": [
     {
       "role": "Question",
@@ -19,11 +19,11 @@
     },
     {
       "role": "Method",
-      "text": "The system classifies trials into eight cardiovascular sub-domains via keyword matching, performs automated publication reconciliation, and delivers interactive forest and funnel plots through a Streamlit dashboard with domain-level statistical summaries."
+      "text": "The system classifies trials into eight cardiovascular sub-domains via keyword matching, performs automated publication reconciliation, and delivers interactive forest and funnel plots through a summaries."
     },
     {
       "role": "Primary result",
-      "text": "Across 87 automated tests covering extraction, reconciliation, mapping, and visualization, all passed with complete coverage from database query through statistical aggregation and plot generation."
+      "text": "Across 87 of 87 automated validation tests (100 percent pass rate) covering extraction and visualization, all passed with complete coverage from database query through statistical aggregation and plot generation."
     },
     {
       "role": "Robustness",
