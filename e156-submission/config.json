@@ -3,7 +3,7 @@
   "slug": "cv-rct-analysis-dashboard",
   "author": "Mahmood Ahmad",
   "date": "2026-03-26",
-  "path": "/mnt/c/Projects/cv-rct-analysis",
+  "path": "C:\\Projects\\cv-rct-analysis",
   "type": "methods",
   "primary_estimand": "Publication rate",
   "summary": "A Streamlit dashboard integrating ClinicalTrials.gov AACT data with PubMed and OpenAlex to map the cardiovascular Phase III RCT landscape from 2015 to 2022.",
@@ -48,10 +48,11 @@
     "validation": "DRAFT"
   },
   "affiliation": "Tahir Heart Institute",
-  "email": "author@example.com",
+  "email": "mahmood.ahmad2@nhs.net",
   "references": [
     "Borenstein M, Hedges LV, Higgins JPT, Rothstein HR. Introduction to Meta-Analysis. 2nd ed. Wiley; 2021.",
     "Higgins JPT, Thompson SG, Deeks JJ, Altman DG. Measuring inconsistency in meta-analyses. BMJ. 2003;327(7414):557-560.",
     "Cochrane Handbook for Systematic Reviews of Interventions. Version 6.4. Cochrane; 2023."
-  ]
+  ],
+  "submitted": false
 }
