@@ -79,7 +79,9 @@ class VizGenerator:
             labels={"effect_size": "Effect Size", y_col: y_label}
         )
 
-        fig.update_layout(template="plotly_white")
-        # Standard convention: high SE (imprecise/small) at bottom, low SE (precise/large) at top
-        # No reversal needed — SE naturally puts large studies (low SE) at top
+        # Standard funnel convention (metafor/RevMan): precise/large studies (low SE)
+        # at the TOP, imprecise/small studies (high SE) at the bottom. Plotly's default
+        # y-axis increases upward, which would place low-SE points at the bottom, so the
+        # SE axis must be reversed to match the convention.
+        fig.update_layout(template="plotly_white", yaxis=dict(autorange="reversed"))
         return fig
